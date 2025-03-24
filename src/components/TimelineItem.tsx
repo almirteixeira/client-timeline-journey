@@ -128,7 +128,7 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
               className="flex items-center text-sm"
             >
               <CheckIcon size={16} className="mr-1" />
-              <span>Aprovar etapa</span>
+              <span>Aprovar</span>
             </Button>
           </div>
         </div>

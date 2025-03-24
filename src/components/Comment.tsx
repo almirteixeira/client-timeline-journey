@@ -19,7 +19,7 @@ const Comment: React.FC<CommentProps> = ({ comment }) => {
         <span className="text-xs text-muted-foreground">{comment.date}</span>
       </div>
       <p className={`text-sm ${isApprovalComment ? 'text-green-600 font-medium' : ''}`}>
-        {isApprovalComment ? 'Etapa aprovada pelo cliente' : comment.text}
+        {comment.text}
       </p>
     </div>
   );
