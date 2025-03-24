@@ -1,9 +1,13 @@
 
 import React, { useState } from 'react';
 import { TimelineItem as TimelineItemType } from '../lib/types';
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon, MessageCircleIcon } from 'lucide-react';
+import { CheckIcon, MessageCircleIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useConfig } from '../context/ConfigContext';
+import { postComment } from '../lib/clickup';
 import Comment from './Comment';
 import CommentForm from './CommentForm';
+import { Button } from './ui/button';
 
 interface TimelineItemProps {
   item: TimelineItemType;
@@ -14,6 +18,9 @@ interface TimelineItemProps {
 const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAdded }) => {
   const [expanded, setExpanded] = useState(false);
   const [showCommentForm, setShowCommentForm] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const { toast } = useToast();
+  const { apiKey } = useConfig();
 
   const toggleExpanded = () => {
     setExpanded(!expanded);
@@ -23,10 +30,32 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
     setShowCommentForm(!showCommentForm);
   };
 
-  const statusToClass = {
-    active: 'bg-timeline-item-active',
-    inactive: 'bg-timeline-item-inactive',
-    completed: 'bg-timeline-item-completed'
+  const toggleComments = () => {
+    setShowComments(!showComments);
+  };
+
+  const handleApproveStage = async () => {
+    try {
+      await postComment(apiKey, item.id, "Etapa aprovada pelo cliente", "Cliente");
+      toast({
+        title: "Etapa aprovada",
+        description: "Sua aprovação foi registrada com sucesso.",
+      });
+      onCommentAdded();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível registrar sua aprovação. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Map status to display text and style classes
+  const statusMap = {
+    completed: { text: 'Concluído', classes: 'bg-green-100 text-green-800' },
+    active: { text: 'Em Progresso', classes: 'bg-blue-100 text-blue-800' },
+    inactive: { text: 'Pendente', classes: 'bg-gray-100 text-gray-800' }
   };
 
   return (
@@ -35,15 +64,9 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
         <div className="flex justify-between items-start mb-2">
           <h3 className="font-medium text-lg">{item.title}</h3>
           <span 
-            className={`px-2 py-1 text-xs rounded-full ${
-              item.status === 'completed' ? 'bg-green-100 text-green-800' :
-              item.status === 'active' ? 'bg-blue-100 text-blue-800' :
-              'bg-gray-100 text-gray-800'
-            }`}
+            className={`px-2 py-1 text-xs rounded-full ${statusMap[item.status].classes}`}
           >
-            {item.status === 'completed' ? 'Concluído' : 
-             item.status === 'active' ? 'Em Progresso' : 
-             'Pendente'}
+            {statusMap[item.status].text}
           </span>
         </div>
         
@@ -55,10 +78,12 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
           </div>
         )}
         
-        <div className="flex items-center justify-between mt-4">
-          <button 
+        <div className="flex flex-wrap items-center justify-between mt-4 gap-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
             onClick={toggleExpanded}
-            className="flex items-center text-sm text-primary hover:text-primary/80 transition-colors duration-200"
+            className="flex items-center text-sm"
           >
             {expanded ? (
               <>
@@ -71,33 +96,59 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
                 <span>Mais detalhes</span>
               </>
             )}
-          </button>
+          </Button>
           
-          <button
-            onClick={toggleCommentForm}
-            className="flex items-center text-sm text-primary hover:text-primary/80 transition-colors duration-200"
-          >
-            <MessageCircleIcon size={16} className="mr-1" />
-            <span>Comentar</span>
-          </button>
+          <div className="flex gap-2">
+            {item.comments.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleComments}
+                className="flex items-center text-sm"
+              >
+                <MessageCircleIcon size={16} className="mr-1" />
+                <span>{showComments ? "Ocultar comentários" : `Ver comentários (${item.comments.length})`}</span>
+              </Button>
+            )}
+          
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleCommentForm}
+              className="flex items-center text-sm"
+            >
+              <MessageCircleIcon size={16} className="mr-1" />
+              <span>Comentar</span>
+            </Button>
+            
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleApproveStage}
+              className="flex items-center text-sm"
+            >
+              <CheckIcon size={16} className="mr-1" />
+              <span>Aprovar etapa</span>
+            </Button>
+          </div>
         </div>
         
-        {(item.comments.length > 0 || showCommentForm) && (
-          <div className="comment-section animate-slide-up">
-            {item.comments.length > 0 && (
-              <div className="mb-4">
-                <h4 className="text-sm font-medium mb-2">Comentários ({item.comments.length})</h4>
-                <div className="space-y-2">
-                  {item.comments.map(comment => (
-                    <Comment key={comment.id} comment={comment} />
-                  ))}
-                </div>
+        {(showComments && item.comments.length > 0) && (
+          <div className="comment-section mt-4 animate-slide-up">
+            <div className="mb-4">
+              <h4 className="text-sm font-medium mb-2">Comentários ({item.comments.length})</h4>
+              <div className="space-y-2">
+                {item.comments.map(comment => (
+                  <Comment key={comment.id} comment={comment} />
+                ))}
               </div>
-            )}
-            
-            {showCommentForm && (
-              <CommentForm taskId={item.id} onCommentAdded={onCommentAdded} />
-            )}
+            </div>
+          </div>
+        )}
+        
+        {showCommentForm && (
+          <div className="comment-form-section mt-4 animate-slide-up">
+            <CommentForm taskId={item.id} onCommentAdded={onCommentAdded} />
           </div>
         )}
       </div>
