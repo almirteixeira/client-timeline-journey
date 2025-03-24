@@ -1,0 +1,89 @@
+
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import { useConfig } from '../context/ConfigContext';
+import { fetchTasks, transformTasksToTimeline } from '../lib/clickup';
+import Timeline from '../components/Timeline';
+import { TimelineItem } from '../lib/types';
+import { Loader2 } from 'lucide-react';
+
+const TimelinePage: React.FC = () => {
+  const { apiKey, listId, visibleItems } = useConfig();
+  const { toast } = useToast();
+  const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadTimelineData = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const tasks = await fetchTasks(apiKey, listId);
+      const transformedTasks = transformTasksToTimeline(tasks, visibleItems);
+      setTimelineItems(transformedTasks);
+    } catch (error) {
+      console.error('Error loading timeline data:', error);
+      setError('Não foi possível carregar os dados da timeline. Por favor, tente novamente mais tarde.');
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar as etapas do projeto.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (apiKey && listId) {
+      loadTimelineData();
+    } else {
+      setLoading(false);
+      setError('Configuração incompleta. Por favor, entre em contato com o administrador.');
+    }
+  }, [apiKey, listId, visibleItems]);
+
+  const handleCommentAdded = () => {
+    // Reload timeline data when a comment is added
+    loadTimelineData();
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-8">
+        <Loader2 className="h-16 w-16 text-primary animate-spin mb-4" />
+        <p className="text-lg text-muted-foreground">Carregando timeline do projeto...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-8 text-center">
+        <div className="max-w-md">
+          <h2 className="text-2xl font-semibold mb-4">Ops! Algo deu errado</h2>
+          <p className="text-muted-foreground mb-6">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-timeline-bg pt-12 pb-24 px-4">
+      <div className="max-w-5xl mx-auto">
+        <header className="text-center mb-16">
+          <h1 className="text-4xl font-bold mb-4 animate-fade-in">Timeline do Projeto</h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-slide-up">
+            Acompanhe o progresso do seu projeto e interaja com cada etapa através de comentários.
+          </p>
+        </header>
+
+        <Timeline items={timelineItems} onCommentAdded={handleCommentAdded} />
+      </div>
+    </div>
+  );
+};
+
+export default TimelinePage;
