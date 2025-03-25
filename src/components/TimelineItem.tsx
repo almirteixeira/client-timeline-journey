@@ -101,17 +101,19 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
           </Button>
           
           <div className="flex flex-wrap gap-2">
-            {item.comments.length > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowCommentsDialog(true)}
-                className="flex items-center text-sm"
-              >
-                <MessageCircleIcon size={16} className="mr-1" />
-                <span>Ver todos os comentários ({item.comments.length})</span>
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowCommentsDialog(true)}
+              className="flex items-center text-sm"
+            >
+              <MessageCircleIcon size={16} className="mr-1" />
+              <span>
+                {item.comments.length > 0 
+                  ? `Ver todos os comentários (${item.comments.length})` 
+                  : "Comentários"}
+              </span>
+            </Button>
           
             <Button
               variant="outline"
