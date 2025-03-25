@@ -8,7 +8,7 @@ import { postComment } from '../lib/clickup';
 import Comment from './Comment';
 import CommentForm from './CommentForm';
 import { Button } from './ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 
 interface TimelineItemProps {
   item: TimelineItemType;
@@ -60,6 +60,9 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
     inactive: { text: 'Pendente', classes: 'bg-gray-100 text-gray-800' }
   };
 
+  // Ensure we have a valid array of comments
+  const comments = item.comments || [];
+
   return (
     <div className={`timeline-item ${position === 'right' ? 'flex-row-reverse' : ''} ${position === 'full' ? 'block w-full' : ''}`}>
       <div className={`timeline-content ${position === 'right' ? 'ml-auto' : position === 'left' ? 'mr-auto' : 'w-full'} animate-fade-in`}>
@@ -109,8 +112,8 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
             >
               <MessageCircleIcon size={16} className="mr-1" />
               <span>
-                {item.comments.length > 0 
-                  ? `Ver todos os comentários (${item.comments.length})` 
+                {comments.length > 0 
+                  ? `Ver todos os comentários (${comments.length})` 
                   : "Comentários"}
               </span>
             </Button>
@@ -137,12 +140,12 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
           </div>
         </div>
         
-        {(showComments && item.comments.length > 0) && (
+        {(showComments && comments.length > 0) && (
           <div className="comment-section mt-4 animate-slide-up">
             <div className="mb-4">
-              <h4 className="text-sm font-medium mb-2">Comentários ({item.comments.length})</h4>
+              <h4 className="text-sm font-medium mb-2">Comentários ({comments.length})</h4>
               <div className="space-y-2">
-                {item.comments.map(comment => (
+                {comments.map(comment => (
                   <Comment key={comment.id} comment={comment} />
                 ))}
               </div>
@@ -161,11 +164,14 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
           <DialogContent className="max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Comentários - {item.title}</DialogTitle>
+              <DialogDescription>
+                Visualize e adicione comentários para esta etapa do projeto
+              </DialogDescription>
             </DialogHeader>
             
-            {item.comments.length > 0 ? (
+            {comments.length > 0 ? (
               <div className="space-y-4 py-4">
-                {item.comments.map(comment => (
+                {comments.map(comment => (
                   <Comment key={comment.id} comment={comment} />
                 ))}
               </div>
