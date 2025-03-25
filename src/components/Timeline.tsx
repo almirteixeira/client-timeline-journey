@@ -28,7 +28,7 @@ const Timeline: React.FC<TimelineProps> = ({ items, onCommentAdded }) => {
     <div className={`timeline-container animate-fade-in ${isMobile ? 'mobile-timeline' : ''}`}>
       {!isMobile && <div className="timeline-line" />}
       
-      <div className={isMobile ? "flex flex-col space-y-6" : ""}>
+      <div className={`${isMobile ? "flex flex-col space-y-6" : ""}`}>
         {visibleItems.map((item, index) => (
           <TimelineItem 
             key={item.id} 

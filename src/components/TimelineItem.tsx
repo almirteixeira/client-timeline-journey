@@ -8,6 +8,7 @@ import { postComment } from '../lib/clickup';
 import Comment from './Comment';
 import CommentForm from './CommentForm';
 import { Button } from './ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 
 interface TimelineItemProps {
   item: TimelineItemType;
@@ -19,6 +20,7 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
   const [expanded, setExpanded] = useState(false);
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [showCommentsDialog, setShowCommentsDialog] = useState(false);
   const { toast } = useToast();
   const { apiKey } = useConfig();
 
@@ -103,11 +105,11 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
               <Button
                 variant="outline"
                 size="sm"
-                onClick={toggleComments}
+                onClick={() => setShowCommentsDialog(true)}
                 className="flex items-center text-sm"
               >
                 <MessageCircleIcon size={16} className="mr-1" />
-                <span>{showComments ? "Ocultar comentários" : `Ver comentários (${item.comments.length})`}</span>
+                <span>Ver todos os comentários ({item.comments.length})</span>
               </Button>
             )}
           
@@ -151,6 +153,34 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
             <CommentForm taskId={item.id} onCommentAdded={onCommentAdded} />
           </div>
         )}
+        
+        {/* Comments Dialog */}
+        <Dialog open={showCommentsDialog} onOpenChange={setShowCommentsDialog}>
+          <DialogContent className="max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Comentários - {item.title}</DialogTitle>
+            </DialogHeader>
+            
+            {item.comments.length > 0 ? (
+              <div className="space-y-4 py-4">
+                {item.comments.map(comment => (
+                  <Comment key={comment.id} comment={comment} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Nenhum comentário disponível.</p>
+              </div>
+            )}
+            
+            <div className="mt-6 border-t pt-4">
+              <CommentForm taskId={item.id} onCommentAdded={() => {
+                onCommentAdded();
+                setShowCommentsDialog(false);
+              }} />
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
       
       {position !== 'full' && (
