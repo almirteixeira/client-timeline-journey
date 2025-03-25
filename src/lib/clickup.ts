@@ -1,5 +1,5 @@
 
-import { ClickUpTask, TimelineItem, Comment } from './types';
+import { ClickUpTask, TimelineItem, Comment, ClickUpComment } from './types';
 
 const API_BASE_URL = 'https://api.clickup.com/api/v2';
 
@@ -22,6 +22,35 @@ export const fetchTasks = async (apiKey: string, listId: string): Promise<ClickU
   } catch (error) {
     console.error('Error fetching tasks from ClickUp:', error);
     throw error;
+  }
+};
+
+export const fetchTaskComments = async (apiKey: string, taskId: string): Promise<Comment[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/task/${taskId}/comment`, {
+      method: 'GET',
+      headers: {
+        'Authorization': apiKey,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`ClickUp API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    // Map the ClickUp comment format to our Comment format
+    return (data.comments || []).map((comment: ClickUpComment) => ({
+      id: comment.id,
+      author: comment.user.username,
+      text: comment.comment_text,
+      date: new Date(parseInt(comment.date)).toLocaleString()
+    }));
+  } catch (error) {
+    console.error('Error fetching comments from ClickUp:', error);
+    return [];
   }
 };
 

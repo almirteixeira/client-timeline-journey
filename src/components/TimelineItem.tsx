@@ -1,10 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TimelineItem as TimelineItemType } from '../lib/types';
-import { CheckIcon, MessageCircleIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
+import { CheckIcon, MessageCircleIcon, ChevronDownIcon, ChevronUpIcon, Loader2Icon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useConfig } from '../context/ConfigContext';
-import { postComment } from '../lib/clickup';
+import { postComment, fetchTaskComments } from '../lib/clickup';
 import Comment from './Comment';
 import CommentForm from './CommentForm';
 import { Button } from './ui/button';
@@ -21,6 +21,8 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [showCommentsDialog, setShowCommentsDialog] = useState(false);
+  const [comments, setComments] = useState(item.comments || []);
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
   const { toast } = useToast();
   const { apiKey } = useConfig();
 
@@ -36,6 +38,36 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
     setShowComments(!showComments);
   };
 
+  const loadComments = async () => {
+    if (!showCommentsDialog) return;
+    
+    setIsLoadingComments(true);
+    try {
+      const fetchedComments = await fetchTaskComments(apiKey, item.id);
+      setComments(fetchedComments);
+    } catch (error) {
+      console.error('Error loading comments:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os comentários. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingComments(false);
+    }
+  };
+
+  useEffect(() => {
+    loadComments();
+  }, [showCommentsDialog, apiKey, item.id]);
+
+  const handleDialogOpen = (open: boolean) => {
+    setShowCommentsDialog(open);
+    if (!open) {
+      setComments(item.comments || []);
+    }
+  };
+
   const handleApproveStage = async () => {
     try {
       await postComment(apiKey, item.id, "Etapa aprovada pelo cliente", "Cliente");
@@ -44,6 +76,7 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
         description: "Sua aprovação foi registrada com sucesso.",
       });
       onCommentAdded();
+      loadComments();
     } catch (error) {
       toast({
         title: "Erro",
@@ -53,15 +86,17 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
     }
   };
 
+  const handleCommentAdded = () => {
+    onCommentAdded();
+    loadComments();
+  };
+
   // Map status to display text and style classes
   const statusMap = {
     completed: { text: 'Concluído', classes: 'bg-green-100 text-green-800' },
     active: { text: 'Em Progresso', classes: 'bg-blue-100 text-blue-800' },
     inactive: { text: 'Pendente', classes: 'bg-gray-100 text-gray-800' }
   };
-
-  // Ensure we have a valid array of comments
-  const comments = item.comments || [];
 
   return (
     <div className={`timeline-item ${position === 'right' ? 'flex-row-reverse' : ''} ${position === 'full' ? 'block w-full' : ''}`}>
@@ -155,12 +190,12 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
         
         {showCommentForm && (
           <div className="comment-form-section mt-4 animate-slide-up">
-            <CommentForm taskId={item.id} onCommentAdded={onCommentAdded} />
+            <CommentForm taskId={item.id} onCommentAdded={handleCommentAdded} />
           </div>
         )}
         
         {/* Comments Dialog */}
-        <Dialog open={showCommentsDialog} onOpenChange={setShowCommentsDialog}>
+        <Dialog open={showCommentsDialog} onOpenChange={handleDialogOpen}>
           <DialogContent className="max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Comentários - {item.title}</DialogTitle>
@@ -169,7 +204,12 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
               </DialogDescription>
             </DialogHeader>
             
-            {comments.length > 0 ? (
+            {isLoadingComments ? (
+              <div className="flex justify-center items-center py-12">
+                <Loader2Icon className="h-8 w-8 animate-spin text-primary" />
+                <span className="ml-2 text-sm text-muted-foreground">Carregando comentários...</span>
+              </div>
+            ) : comments.length > 0 ? (
               <div className="space-y-4 py-4">
                 {comments.map(comment => (
                   <Comment key={comment.id} comment={comment} />
@@ -182,10 +222,7 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
             )}
             
             <div className="mt-6 border-t pt-4">
-              <CommentForm taskId={item.id} onCommentAdded={() => {
-                onCommentAdded();
-                setShowCommentsDialog(false);
-              }} />
+              <CommentForm taskId={item.id} onCommentAdded={handleCommentAdded} />
             </div>
           </DialogContent>
         </Dialog>
