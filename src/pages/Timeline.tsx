@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useConfig } from '../context/ConfigContext';
 import { fetchTasks, transformTasksToTimeline } from '../lib/clickup';
@@ -9,6 +9,7 @@ import { TimelineItem } from '../lib/types';
 import { Loader2 } from 'lucide-react';
 
 const TimelinePage: React.FC = () => {
+  const location = useLocation();
   const { apiKey, listId, visibleItems } = useConfig();
   const { toast } = useToast();
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
@@ -43,7 +44,7 @@ const TimelinePage: React.FC = () => {
       setLoading(false);
       setError('Configuração incompleta. Por favor, entre em contato com o administrador.');
     }
-  }, [apiKey, listId, visibleItems]);
+  }, [apiKey, listId, visibleItems, location.search]);
 
   const handleCommentAdded = () => {
     // Reload timeline data when a comment is added

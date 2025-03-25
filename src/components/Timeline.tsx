@@ -2,6 +2,7 @@
 import React from 'react';
 import { TimelineItem as TimelineItemType } from '../lib/types';
 import TimelineItem from './TimelineItem';
+import { useIsMobile } from '../hooks/use-mobile';
 
 interface TimelineProps {
   items: TimelineItemType[];
@@ -9,6 +10,8 @@ interface TimelineProps {
 }
 
 const Timeline: React.FC<TimelineProps> = ({ items, onCommentAdded }) => {
+  const isMobile = useIsMobile();
+  
   // Filter only visible items
   const visibleItems = items.filter(item => item.visible);
 
@@ -22,17 +25,19 @@ const Timeline: React.FC<TimelineProps> = ({ items, onCommentAdded }) => {
   }
 
   return (
-    <div className="timeline-container animate-fade-in">
-      <div className="timeline-line" />
+    <div className={`timeline-container animate-fade-in ${isMobile ? 'mobile-timeline' : ''}`}>
+      {!isMobile && <div className="timeline-line" />}
       
-      {visibleItems.map((item, index) => (
-        <TimelineItem 
-          key={item.id} 
-          item={item} 
-          position={index % 2 === 0 ? 'left' : 'right'}
-          onCommentAdded={onCommentAdded}
-        />
-      ))}
+      <div className={isMobile ? "flex flex-col space-y-6" : ""}>
+        {visibleItems.map((item, index) => (
+          <TimelineItem 
+            key={item.id} 
+            item={item} 
+            position={isMobile ? 'full' : (index % 2 === 0 ? 'left' : 'right')}
+            onCommentAdded={onCommentAdded}
+          />
+        ))}
+      </div>
     </div>
   );
 };

@@ -46,6 +46,9 @@ export const transformTasksToTimeline = (tasks: ClickUpTask[], visibleItems: str
       status = 'active';
     }
 
+    // Set all items as visible by default, but use the visibleItems array if it has elements
+    const isVisible = visibleItems.length === 0 ? true : visibleItems.includes(task.id);
+
     return {
       id: task.id,
       title: task.name,
@@ -53,7 +56,7 @@ export const transformTasksToTimeline = (tasks: ClickUpTask[], visibleItems: str
       status,
       date: new Date(parseInt(task.date_created)).toLocaleString(),
       comments: mappedComments,
-      visible: visibleItems.includes(task.id)
+      visible: isVisible
     };
   });
 };

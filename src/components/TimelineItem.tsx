@@ -11,7 +11,7 @@ import { Button } from './ui/button';
 
 interface TimelineItemProps {
   item: TimelineItemType;
-  position: 'left' | 'right';
+  position: 'left' | 'right' | 'full';
   onCommentAdded: () => void;
 }
 
@@ -59,9 +59,9 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
   };
 
   return (
-    <div className={`timeline-item ${position === 'right' ? 'flex-row-reverse' : ''}`}>
-      <div className={`timeline-content ${position === 'right' ? 'ml-auto' : 'mr-auto'} animate-fade-in`}>
-        <div className="flex justify-between items-start mb-2">
+    <div className={`timeline-item ${position === 'right' ? 'flex-row-reverse' : ''} ${position === 'full' ? 'block w-full' : ''}`}>
+      <div className={`timeline-content ${position === 'right' ? 'ml-auto' : position === 'left' ? 'mr-auto' : 'w-full'} animate-fade-in`}>
+        <div className="flex justify-between items-start mb-2 flex-wrap gap-2">
           <h3 className="font-medium text-lg">{item.title}</h3>
           <span 
             className={`px-2 py-1 text-xs rounded-full ${statusMap[item.status].classes}`}
@@ -98,7 +98,7 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
             )}
           </Button>
           
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {item.comments.length > 0 && (
               <Button
                 variant="outline"
@@ -153,11 +153,13 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
         )}
       </div>
       
-      <div className={`timeline-dot ${item.status}`}>
-        {item.status === 'completed' && (
-          <CheckIcon size={12} className="absolute inset-0 m-auto text-white" />
-        )}
-      </div>
+      {position !== 'full' && (
+        <div className={`timeline-dot ${item.status}`}>
+          {item.status === 'completed' && (
+            <CheckIcon size={12} className="absolute inset-0 m-auto text-white" />
+          )}
+        </div>
+      )}
     </div>
   );
 };
