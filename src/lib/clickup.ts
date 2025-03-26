@@ -19,6 +19,7 @@ export const fetchTasks = async (apiKey: string, listId: string): Promise<ClickU
     }
 
     const data = await response.json();
+    console.log('Tasks fetched:', data.tasks);
     return data.tasks || [];
   } catch (error) {
     console.error('Error fetching tasks from ClickUp:', error);
@@ -64,16 +65,28 @@ export const transformTasksToTimeline = (tasks: ClickUpTask[], visibleItems: str
       date: new Date(parseInt(comment.date)).toLocaleString()
     }));
 
+    // Log the actual status from ClickUp to help with debugging
+    console.log('Task status from ClickUp:', task.name, task.status.status);
+    
     // Map status directly without transforming to our own status values
     let status: 'active' | 'inactive' | 'completed';
     
-    // Determine timeline status for internal tracking
-    if (task.status.status.toLowerCase().includes('complete') || 
-        task.status.status.toLowerCase().includes('done')) {
+    // Normalize to lowercase for consistent comparison
+    const taskStatusLower = task.status.status.toLowerCase();
+    
+    // Determine timeline status for internal tracking with more comprehensive checks
+    if (taskStatusLower.includes('complete') || 
+        taskStatusLower.includes('done') || 
+        taskStatusLower.includes('feito') || 
+        taskStatusLower.includes('concluído') ||
+        taskStatusLower.includes('completed') ||
+        taskStatusLower.includes('finalizado')) {
       status = 'completed';
-    } else if (task.status.status.toLowerCase().includes('progress') || 
-               task.status.status.toLowerCase().includes('active') || 
-               task.status.status.toLowerCase().includes('ongoing')) {
+    } else if (taskStatusLower.includes('progress') || 
+               taskStatusLower.includes('andamento') || 
+               taskStatusLower.includes('active') || 
+               taskStatusLower.includes('ongoing') ||
+               taskStatusLower.includes('em execução')) {
       status = 'active';
     } else {
       status = 'inactive';
