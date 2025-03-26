@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useConfig } from '../context/ConfigContext';
 import { fetchTasks, transformTasksToTimeline } from '../lib/clickup';
 import Timeline from '../components/Timeline';
+import TimelineDashboard from '../components/TimelineDashboard';
 import { TimelineItem } from '../lib/types';
 import { Loader2 } from 'lucide-react';
 
@@ -74,13 +74,17 @@ const TimelinePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-timeline-bg pt-12 pb-24 px-4">
       <div className="max-w-5xl mx-auto">
-        <header className="text-center mb-16">
+        <header className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4 animate-fade-in">Timeline do Projeto</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-slide-up">
             Acompanhe o progresso do seu projeto e interaja com cada etapa através de comentários.
           </p>
         </header>
 
+        {/* Add the new dashboard component */}
+        <TimelineDashboard items={timelineItems} />
+        
+        {/* Existing timeline component */}
         <Timeline items={timelineItems} onCommentAdded={handleCommentAdded} />
       </div>
     </div>

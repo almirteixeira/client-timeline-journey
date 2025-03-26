@@ -5,6 +5,7 @@ const API_BASE_URL = 'https://api.clickup.com/api/v2';
 
 export const fetchTasks = async (apiKey: string, listId: string): Promise<ClickUpTask[]> => {
   try {
+    // Set include_comments=true to get comments with the tasks
     const response = await fetch(`${API_BASE_URL}/list/${listId}/task?include_comments=true`, {
       method: 'GET',
       headers: {
