@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { TimelineItem as TimelineItemType } from '../lib/types';
 import { CheckIcon } from 'lucide-react';
@@ -97,7 +96,7 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
       <div className={`timeline-content ${position === 'right' ? 'ml-auto' : position === 'left' ? 'mr-auto' : 'w-full'} animate-fade-in`}>
         <div className="flex justify-between items-start mb-2 flex-wrap gap-2">
           <h3 className="font-medium text-lg">{item.title}</h3>
-          <StatusBadge status={item.status} />
+          <StatusBadge status={item.actualStatus} />
         </div>
         
         <p className="text-sm text-muted-foreground mb-2">{item.date}</p>

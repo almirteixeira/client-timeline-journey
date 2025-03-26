@@ -64,9 +64,10 @@ export const transformTasksToTimeline = (tasks: ClickUpTask[], visibleItems: str
       date: new Date(parseInt(comment.date)).toLocaleString()
     }));
 
-    let status: 'active' | 'inactive' | 'completed' = 'inactive';
+    // Map status directly without transforming to our own status values
+    let status: 'active' | 'inactive' | 'completed';
     
-    // Map ClickUp status to our timeline status
+    // Determine timeline status for internal tracking
     if (task.status.status.toLowerCase().includes('complete') || 
         task.status.status.toLowerCase().includes('done')) {
       status = 'completed';
@@ -74,6 +75,8 @@ export const transformTasksToTimeline = (tasks: ClickUpTask[], visibleItems: str
                task.status.status.toLowerCase().includes('active') || 
                task.status.status.toLowerCase().includes('ongoing')) {
       status = 'active';
+    } else {
+      status = 'inactive';
     }
 
     // Set all items as visible by default, but use the visibleItems array if it has elements
@@ -84,6 +87,7 @@ export const transformTasksToTimeline = (tasks: ClickUpTask[], visibleItems: str
       title: task.name,
       description: task.description || '',
       status,
+      actualStatus: task.status.status, // Store the actual status string from ClickUp
       date: new Date(parseInt(task.date_created)).toLocaleString(),
       comments: mappedComments,
       visible: isVisible

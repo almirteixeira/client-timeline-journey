@@ -4,6 +4,7 @@ export interface TimelineItem {
   title: string;
   description: string;
   status: 'active' | 'inactive' | 'completed';
+  actualStatus: string; // Added to store the real status from ClickUp
   date: string;
   comments: Comment[];
   visible: boolean;
