@@ -1,14 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { TimelineItem as TimelineItemType } from '../lib/types';
-import { CheckIcon, MessageCircleIcon, ChevronDownIcon, ChevronUpIcon, Loader2Icon } from 'lucide-react';
+import { CheckIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useConfig } from '../context/ConfigContext';
 import { postComment, fetchTaskComments } from '../lib/clickup';
 import Comment from './Comment';
 import CommentForm from './CommentForm';
-import { Button } from './ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
+import StatusBadge from './timeline/StatusBadge';
+import TimelineItemActions from './timeline/TimelineItemActions';
+import CommentsDialog from './timeline/CommentsDialog';
 
 interface TimelineItemProps {
   item: TimelineItemType;
@@ -91,23 +92,12 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
     loadComments();
   };
 
-  // Map status to display text and style classes
-  const statusMap = {
-    completed: { text: 'Concluído', classes: 'bg-green-100 text-green-800' },
-    active: { text: 'Em Progresso', classes: 'bg-blue-100 text-blue-800' },
-    inactive: { text: 'Pendente', classes: 'bg-gray-100 text-gray-800' }
-  };
-
   return (
     <div className={`timeline-item ${position === 'right' ? 'flex-row-reverse' : ''} ${position === 'full' ? 'block w-full' : ''}`}>
       <div className={`timeline-content ${position === 'right' ? 'ml-auto' : position === 'left' ? 'mr-auto' : 'w-full'} animate-fade-in`}>
         <div className="flex justify-between items-start mb-2 flex-wrap gap-2">
           <h3 className="font-medium text-lg">{item.title}</h3>
-          <span 
-            className={`px-2 py-1 text-xs rounded-full ${statusMap[item.status].classes}`}
-          >
-            {statusMap[item.status].text}
-          </span>
+          <StatusBadge status={item.status} />
         </div>
         
         <p className="text-sm text-muted-foreground mb-2">{item.date}</p>
@@ -118,62 +108,14 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
           </div>
         )}
         
-        <div className="flex flex-wrap items-center justify-between mt-4 gap-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={toggleExpanded}
-            className="flex items-center text-sm"
-          >
-            {expanded ? (
-              <>
-                <ChevronUpIcon size={16} className="mr-1" />
-                <span>Menos detalhes</span>
-              </>
-            ) : (
-              <>
-                <ChevronDownIcon size={16} className="mr-1" />
-                <span>Mais detalhes</span>
-              </>
-            )}
-          </Button>
-          
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowCommentsDialog(true)}
-              className="flex items-center text-sm"
-            >
-              <MessageCircleIcon size={16} className="mr-1" />
-              <span>
-                {comments.length > 0 
-                  ? `Ver todos os comentários (${comments.length})` 
-                  : "Comentários"}
-              </span>
-            </Button>
-          
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleCommentForm}
-              className="flex items-center text-sm"
-            >
-              <MessageCircleIcon size={16} className="mr-1" />
-              <span>Comentar</span>
-            </Button>
-            
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleApproveStage}
-              className="flex items-center text-sm"
-            >
-              <CheckIcon size={16} className="mr-1" />
-              <span>Aprovar</span>
-            </Button>
-          </div>
-        </div>
+        <TimelineItemActions 
+          expanded={expanded}
+          toggleExpanded={toggleExpanded}
+          toggleCommentForm={toggleCommentForm}
+          openCommentsDialog={() => setShowCommentsDialog(true)}
+          handleApproveStage={handleApproveStage}
+          commentsCount={comments.length}
+        />
         
         {(showComments && comments.length > 0) && (
           <div className="comment-section mt-4 animate-slide-up">
@@ -194,38 +136,15 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
           </div>
         )}
         
-        {/* Comments Dialog */}
-        <Dialog open={showCommentsDialog} onOpenChange={handleDialogOpen}>
-          <DialogContent className="max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Comentários - {item.title}</DialogTitle>
-              <DialogDescription>
-                Visualize e adicione comentários para esta etapa do projeto
-              </DialogDescription>
-            </DialogHeader>
-            
-            {isLoadingComments ? (
-              <div className="flex justify-center items-center py-12">
-                <Loader2Icon className="h-8 w-8 animate-spin text-primary" />
-                <span className="ml-2 text-sm text-muted-foreground">Carregando comentários...</span>
-              </div>
-            ) : comments.length > 0 ? (
-              <div className="space-y-4 py-4">
-                {comments.map(comment => (
-                  <Comment key={comment.id} comment={comment} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Nenhum comentário disponível.</p>
-              </div>
-            )}
-            
-            <div className="mt-6 border-t pt-4">
-              <CommentForm taskId={item.id} onCommentAdded={handleCommentAdded} />
-            </div>
-          </DialogContent>
-        </Dialog>
+        <CommentsDialog 
+          open={showCommentsDialog}
+          onOpenChange={handleDialogOpen}
+          title={item.title}
+          comments={comments}
+          isLoading={isLoadingComments}
+          taskId={item.id}
+          onCommentAdded={handleCommentAdded}
+        />
       </div>
       
       {position !== 'full' && (
