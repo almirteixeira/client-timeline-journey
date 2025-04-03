@@ -5,8 +5,13 @@ import { ClickUpTask } from '../lib/types';
 import { fetchTasks } from '../lib/clickup';
 import { useToast } from '@/hooks/use-toast';
 import { CheckIcon, Eye, EyeOff, RefreshCwIcon, SaveIcon } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 const AdminPanel: React.FC = () => {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const projectId = searchParams.get('id');
+  
   const { 
     apiKey, 
     setApiKey, 
@@ -15,15 +20,21 @@ const AdminPanel: React.FC = () => {
     visibleItems, 
     toggleItemVisibility 
   } = useConfig();
+  
   const { toast } = useToast();
   const [tasks, setTasks] = useState<ClickUpTask[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
+  
+  // Initialize with URL parameter if available, otherwise use listId from context
   const [tempApiKey, setTempApiKey] = useState<string>(apiKey);
-  const [tempListId, setTempListId] = useState<string>(listId);
+  const [tempListId, setTempListId] = useState<string>(projectId || listId);
 
   const fetchTasksList = async () => {
-    if (!apiKey || !listId) {
+    // Use URL parameter if available, otherwise use from state
+    const idToUse = tempListId || listId;
+    
+    if (!apiKey || !idToUse) {
       toast({
         title: "Configuração incompleta",
         description: "Preencha a API Key e o ID da Lista para buscar as tarefas.",
@@ -34,7 +45,7 @@ const AdminPanel: React.FC = () => {
 
     setLoading(true);
     try {
-      const fetchedTasks = await fetchTasks(apiKey, listId);
+      const fetchedTasks = await fetchTasks(apiKey, idToUse);
       setTasks(fetchedTasks);
       toast({
         title: "Sucesso",
@@ -74,11 +85,19 @@ const AdminPanel: React.FC = () => {
     }, 800);
   };
 
+  // Update tempListId if projectId from URL changes
   useEffect(() => {
-    if (apiKey && listId) {
+    if (projectId && projectId !== tempListId) {
+      setTempListId(projectId);
+    }
+  }, [projectId]);
+
+  useEffect(() => {
+    const idToUse = projectId || listId;
+    if (apiKey && idToUse && tasks.length === 0) {
       fetchTasksList();
     }
-  }, []);
+  }, [apiKey, listId, projectId]);
 
   return (
     <div className="max-w-4xl mx-auto p-8 neomorphism">

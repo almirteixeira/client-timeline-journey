@@ -19,7 +19,7 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Get list_id from URL if available
   const getListIdFromUrl = () => {
     const searchParams = new URLSearchParams(location.search);
-    const urlListId = searchParams.get('list_id');
+    const urlListId = searchParams.get('id') || searchParams.get('list_id');
     
     if (urlListId) {
       // Save to localStorage when found in URL
