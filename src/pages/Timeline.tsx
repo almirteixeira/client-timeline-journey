@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -15,13 +16,19 @@ const TimelinePage: React.FC = () => {
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Get the project ID from the URL query parameter
+  const searchParams = new URLSearchParams(location.search);
+  const projectId = searchParams.get('id') || listId;
 
   const loadTimelineData = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const tasks = await fetchTasks(apiKey, listId);
+      // Use projectId from URL if available, otherwise fallback to listId from context
+      const idToUse = projectId || listId;
+      const tasks = await fetchTasks(apiKey, idToUse);
       const transformedTasks = transformTasksToTimeline(tasks, visibleItems);
       setTimelineItems(transformedTasks);
     } catch (error) {
@@ -38,13 +45,15 @@ const TimelinePage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (apiKey && listId) {
+    // Use projectId from URL if available, otherwise use listId from context
+    const idToUse = projectId || listId;
+    if (apiKey && idToUse) {
       loadTimelineData();
     } else {
       setLoading(false);
       setError('Configuração incompleta. Por favor, entre em contato com o administrador.');
     }
-  }, [apiKey, listId, visibleItems, location.search]);
+  }, [apiKey, listId, projectId, visibleItems, location.search]);
 
   const handleCommentAdded = () => {
     // Reload timeline data when a comment is added
@@ -76,6 +85,11 @@ const TimelinePage: React.FC = () => {
       <div className="max-w-5xl mx-auto">
         <header className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4 animate-fade-in">Timeline do Projeto</h1>
+          {projectId && (
+            <div className="mb-4 py-2 px-4 bg-secondary inline-block rounded-md animate-fade-in">
+              <span className="font-medium">ID do Projeto:</span> {projectId}
+            </div>
+          )}
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-slide-up">
             Acompanhe o progresso do seu projeto e interaja com cada etapa através de comentários.
           </p>

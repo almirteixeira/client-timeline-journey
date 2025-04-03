@@ -1,9 +1,21 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { ChevronRightIcon, ClockIcon, MessageCircleIcon, SettingsIcon } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ChevronRightIcon, ClockIcon, MessageCircleIcon, SettingsIcon, ArrowRightIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 const Index = () => {
+  const [projectId, setProjectId] = useState('');
+  const navigate = useNavigate();
+
+  const handleGoToProject = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (projectId.trim()) {
+      navigate(`/timeline?id=${projectId.trim()}`);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="w-full py-6 px-8 bg-white border-b border-border">
@@ -29,6 +41,24 @@ const Index = () => {
             <p className="text-xl text-muted-foreground mb-10 animate-slide-up">
               Acompanhe as etapas, atividades e progresso do seu projeto em um único lugar, com uma interface intuitiva e elegante.
             </p>
+            
+            {/* Project ID input form */}
+            <div className="w-full max-w-md mx-auto mb-10 animate-slide-up">
+              <form onSubmit={handleGoToProject} className="flex gap-2">
+                <Input
+                  type="text"
+                  placeholder="Digite o ID do projeto"
+                  value={projectId}
+                  onChange={(e) => setProjectId(e.target.value)}
+                  className="flex-1"
+                />
+                <Button type="submit" disabled={!projectId.trim()}>
+                  <ArrowRightIcon className="h-4 w-4 mr-2" />
+                  Acessar
+                </Button>
+              </form>
+            </div>
+            
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up">
               <Link
                 to="/timeline"
