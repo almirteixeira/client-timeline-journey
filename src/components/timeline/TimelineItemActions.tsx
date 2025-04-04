@@ -10,6 +10,7 @@ interface TimelineItemActionsProps {
   openCommentsDialog: () => void;
   handleApproveStage: () => void;
   commentsCount: number;
+  disabled?: boolean;
 }
 
 const TimelineItemActions: React.FC<TimelineItemActionsProps> = ({
@@ -18,7 +19,8 @@ const TimelineItemActions: React.FC<TimelineItemActionsProps> = ({
   toggleCommentForm,
   openCommentsDialog,
   handleApproveStage,
-  commentsCount
+  commentsCount,
+  disabled = false
 }) => {
   return (
     <div className="flex flex-wrap items-center justify-between mt-4 gap-2">
@@ -61,6 +63,7 @@ const TimelineItemActions: React.FC<TimelineItemActionsProps> = ({
           size="sm"
           onClick={toggleCommentForm}
           className="flex items-center text-sm"
+          disabled={disabled}
         >
           <MessageCircleIcon size={16} className="mr-1" />
           <span>Comentar</span>
@@ -71,6 +74,7 @@ const TimelineItemActions: React.FC<TimelineItemActionsProps> = ({
           size="sm"
           onClick={handleApproveStage}
           className="flex items-center text-sm"
+          disabled={disabled}
         >
           <CheckIcon size={16} className="mr-1" />
           <span>Aprovar</span>

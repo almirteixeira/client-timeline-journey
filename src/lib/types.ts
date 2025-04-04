@@ -25,10 +25,12 @@ export interface ClickUpTask {
     status: string;
   };
   date_created: string;
+  due_date: string;
   date_updated: string;
   date_closed: string | null;
   comments: ClickUpComment[];
   custom_fields: any[];
+  orderindex: number;
 }
 
 export interface ClickUpComment {

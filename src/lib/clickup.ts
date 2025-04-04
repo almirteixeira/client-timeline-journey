@@ -57,7 +57,18 @@ export const fetchTaskComments = async (apiKey: string, taskId: string): Promise
 };
 
 export const transformTasksToTimeline = (tasks: ClickUpTask[], visibleItems: string[]): TimelineItem[] => {
-  return tasks.map(task => {
+  // Ordenar as tarefas primeiro por data de vencimento e depois pela ordem do ClickUp
+  const sortedTasks = [...tasks].sort((a, b) => {
+    // Primeiro, ordenar por data de vencimento
+    const dateA = a.due_date ? parseInt(a.due_date) : Infinity;
+    const dateB = b.due_date ? parseInt(b.due_date) : Infinity;
+    if (dateA !== dateB) {
+      return dateA - dateB;
+    }
+    // Se as datas forem iguais, usar a ordem do ClickUp
+    return a.orderindex - b.orderindex;
+  });
+  return sortedTasks.map(task => {
     const mappedComments: Comment[] = (task.comments || []).map(comment => ({
       id: comment.id,
       author: comment.user.username,
@@ -101,7 +112,7 @@ export const transformTasksToTimeline = (tasks: ClickUpTask[], visibleItems: str
       description: task.description || '',
       status,
       actualStatus: task.status.status, // Store the actual status string from ClickUp
-      date: new Date(parseInt(task.date_created)).toLocaleString(),
+      date: new Date(parseInt(task.due_date)).toLocaleDateString(),
       comments: mappedComments,
       visible: isVisible
     };

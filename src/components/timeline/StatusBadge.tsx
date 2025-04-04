@@ -19,15 +19,19 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
       statusLower.includes('concluído') ||
       statusLower.includes('feito') || 
       statusLower.includes('completed') || 
-      statusLower.includes('finalizado')) {
-    classes = 'bg-green-100 text-green-800';
+      statusLower.includes('finalizado') ||
+      statusLower === 'concluido') {
+    classes = 'bg-green-800 text-white';
+  } else if (statusLower.includes('aguardando cliente')) {
+    classes = 'bg-blue-800 text-white';
   } else if (statusLower.includes('progress') || 
              statusLower.includes('andamento') || 
              statusLower.includes('active') || 
              statusLower.includes('ongoing') ||
              statusLower.includes('em análise') ||
-             statusLower.includes('em execução')) {
-    classes = 'bg-blue-100 text-blue-800';
+             statusLower.includes('em execução') ||
+             statusLower.includes('fazendo')) {
+    classes = 'bg-orange-800 text-white';
   } else if (statusLower.includes('pending') || 
              statusLower.includes('pendente') ||
              statusLower.includes('inactive') ||

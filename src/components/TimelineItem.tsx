@@ -93,7 +93,7 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
 
   return (
     <div className={`timeline-item ${position === 'right' ? 'flex-row-reverse' : ''} ${position === 'full' ? 'block w-full' : ''}`}>
-      <div className={`timeline-content ${position === 'right' ? 'ml-auto' : position === 'left' ? 'mr-auto' : 'w-full'} animate-fade-in`}>
+      <div className={`timeline-content ${position === 'right' ? 'ml-auto' : position === 'left' ? 'mr-auto' : 'w-full'} animate-fade-in ${item.actualStatus === 'concluido' ? 'bg-green-50 border border-green-200 rounded-lg p-4' : item.actualStatus === 'aguardando cliente' ? 'bg-blue-50 border border-blue-200 rounded-lg p-4' : item.actualStatus === 'fazendo' ? 'bg-orange-50 border border-orange-200 rounded-lg p-4' : ''}`}>
         <div className="flex justify-between items-start mb-2 flex-wrap gap-2">
           <h3 className="font-medium text-lg">{item.title}</h3>
           <StatusBadge status={item.actualStatus} />
@@ -114,6 +114,7 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, position, onCommentAd
           openCommentsDialog={() => setShowCommentsDialog(true)}
           handleApproveStage={handleApproveStage}
           commentsCount={comments.length}
+          disabled={item.actualStatus === 'concluido'}
         />
         
         {(showComments && comments.length > 0) && (

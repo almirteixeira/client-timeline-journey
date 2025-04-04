@@ -12,8 +12,8 @@ interface TimelineDashboardProps {
 const TimelineDashboard: React.FC<TimelineDashboardProps> = ({ items }) => {
   // Calculate statistics
   const totalTasks = items.length;
-  const completedTasks = items.filter(item => item.status === 'completed').length;
-  const activeTasks = items.filter(item => item.status === 'active');
+  const completedTasks = items.filter(item => item.actualStatus === 'concluido').length;
+  const activeTasks = items.filter(item => item.actualStatus === 'aguardando cliente' || item.actualStatus === 'fazendo');
   const pendingTasks = items.filter(item => item.status === 'inactive').length;
   
   // Calculate completion percentage
@@ -73,7 +73,7 @@ const TimelineDashboard: React.FC<TimelineDashboardProps> = ({ items }) => {
           {activeTasks.length > 0 ? (
             <div className="space-y-3 max-h-[150px] overflow-y-auto">
               {activeTasks.map(task => (
-                <div key={task.id} className="p-2 bg-blue-50 rounded-md">
+                <div key={task.id} className={`p-2 rounded-md ${task.actualStatus === 'fazendo' ? 'bg-orange-50' : 'bg-blue-50'}`}>
                   <div className="font-medium text-sm">{task.title}</div>
                   <div className="text-xs text-muted-foreground">Iniciado em: {task.date}</div>
                 </div>
@@ -101,16 +101,16 @@ const TimelineDashboard: React.FC<TimelineDashboardProps> = ({ items }) => {
             <Button 
               variant="outline" 
               className="w-full justify-start"
-              onClick={() => window.open('https://docs.clickup.com/folder-docs', '_blank')}
+              id="info"
             >
               <FileIcon className="mr-2 h-4 w-4" />
-              <span>Documentação do Projeto</span>
+              <span>Informações do Projeto</span>
             </Button>
             
             <Button 
               variant="outline" 
               className="w-full justify-start"
-              onClick={() => window.open('https://drive.google.com/drive/folders', '_blank')}
+              id="arquivos"
             >
               <FolderIcon className="mr-2 h-4 w-4" />
               <span>Arquivos no Google Drive</span>
@@ -119,10 +119,10 @@ const TimelineDashboard: React.FC<TimelineDashboardProps> = ({ items }) => {
             <Button 
               variant="outline" 
               className="w-full justify-start"
-              onClick={() => window.open('https://app.clickup.com', '_blank')}
+              id="treinamento"
             >
               <BarChartIcon className="mr-2 h-4 w-4" />
-              <span>Dashboard ClickUp</span>
+              <span>Treinamento</span>
             </Button>
           </div>
         </CardContent>
