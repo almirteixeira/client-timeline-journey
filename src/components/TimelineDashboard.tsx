@@ -1,15 +1,31 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { TimelineItem } from '../lib/types';
 import { BarChartIcon, CheckIcon, ClipboardListIcon, FileIcon, FolderIcon, Clock3Icon } from 'lucide-react';
 import { Button } from './ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
+import { useConfig } from '../context/ConfigContext';
+import { getList } from '../lib/clickup';
 
 interface TimelineDashboardProps {
   items: TimelineItem[];
 }
 
 const TimelineDashboard: React.FC<TimelineDashboardProps> = ({ items }) => {
+  const [showInfoDialog, setShowInfoDialog] = useState(false);
+  const [projectInfo, setProjectInfo] = useState<{ content?: string }>({});
+  const { apiKey, listId } = useConfig();
+
+  const handleShowInfo = async () => {
+    try {
+      const listDetails = await getList(apiKey, listId);
+      setProjectInfo(listDetails);
+      setShowInfoDialog(true);
+    } catch (error) {
+      console.error('Error fetching project info:', error);
+    }
+  };
   // Calculate statistics
   const totalTasks = items.length;
   const completedTasks = items.filter(item => item.actualStatus === 'concluido').length;
@@ -100,16 +116,28 @@ const TimelineDashboard: React.FC<TimelineDashboardProps> = ({ items }) => {
           <div className="space-y-3">
             <Button 
               variant="outline" 
-              className="w-full justify-start"
+              className="w-full justify-start mt-5"
               id="info"
+              onClick={handleShowInfo}
             >
               <FileIcon className="mr-2 h-4 w-4" />
               <span>Informações do Projeto</span>
             </Button>
+
+            <Dialog open={showInfoDialog} onOpenChange={setShowInfoDialog}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Informações do Projeto</DialogTitle>
+                  <DialogDescription className="whitespace-pre-wrap">
+                    {projectInfo.content || 'Nenhuma informação disponível.'}
+                  </DialogDescription>
+                </DialogHeader>
+              </DialogContent>
+            </Dialog>
             
             <Button 
               variant="outline" 
-              className="w-full justify-start"
+              className="hidden w-full justify-start"
               id="arquivos"
             >
               <FolderIcon className="mr-2 h-4 w-4" />
@@ -118,11 +146,12 @@ const TimelineDashboard: React.FC<TimelineDashboardProps> = ({ items }) => {
             
             <Button 
               variant="outline" 
-              className="w-full justify-start"
-              id="treinamento"
+              className="disabled w-full justify-start"
+              id="suporte"
+              onClick={() => window.open('https://forms.clickup.com/3052452/f/2x4x4-46793/MM982F2ZY6V5ML9TRZ', '_blank')}
             >
               <BarChartIcon className="mr-2 h-4 w-4" />
-              <span>Treinamento</span>
+              <span>Suporte</span>
             </Button>
           </div>
         </CardContent>

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useConfig } from '../context/ConfigContext';
-import { fetchTasks, transformTasksToTimeline } from '../lib/clickup';
+import { fetchTasks, transformTasksToTimeline, getList } from '../lib/clickup';
 import Timeline from '../components/Timeline';
 import TimelineDashboard from '../components/TimelineDashboard';
 import { TimelineItem } from '../lib/types';
@@ -16,6 +16,7 @@ const TimelinePage: React.FC = () => {
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [listName, setListName] = useState<string>('');
   
   // Get the project ID from the URL query parameter
   const searchParams = new URLSearchParams(location.search);
@@ -28,9 +29,13 @@ const TimelinePage: React.FC = () => {
     try {
       // Use projectId from URL if available, otherwise fallback to listId from context
       const idToUse = projectId || listId;
-      const tasks = await fetchTasks(apiKey, idToUse);
+      const [tasks, listDetails] = await Promise.all([
+        fetchTasks(apiKey, idToUse),
+        getList(apiKey, idToUse)
+      ]);
       const transformedTasks = transformTasksToTimeline(tasks, visibleItems);
       setTimelineItems(transformedTasks);
+      setListName(listDetails.name);
     } catch (error) {
       console.error('Error loading timeline data:', error);
       setError('Não foi possível carregar os dados da timeline. Por favor, tente novamente mais tarde.');
@@ -84,14 +89,14 @@ const TimelinePage: React.FC = () => {
     <div className="min-h-screen bg-timeline-bg pt-12 pb-24 px-4">
       <div className="max-w-5xl mx-auto">
         <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4 animate-fade-in">Timeline do Projeto</h1>
+          <h1 className="text-4xl font-bold mb-4 animate-fade-in">{listName || 'Timeline do Projeto'}</h1>
           {projectId && (
-            <div className="mb-4 py-2 px-4 bg-secondary inline-block rounded-md animate-fade-in">
+            <div className="hidden mb-4 py-2 px-4 bg-secondary inline-block rounded-md animate-fade-in">
               <span className="font-medium">ID do Projeto:</span> {projectId}
             </div>
           )}
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-slide-up">
-            Acompanhe o progresso do seu projeto e interaja com cada etapa através de comentários.
+            Acompanhe o desenvolvimento do seu projeto.
           </p>
         </header>
 

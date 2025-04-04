@@ -31,7 +31,7 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
   
   const [apiKey, setApiKey] = useState<string>(() => {
-    return localStorage.getItem('clickup_api_key') || '';
+    return localStorage.getItem('clickup_api_key') || import.meta.env.VITE_CLICKUP_API_KEY || '';
   });
   
   const [listId, setListId] = useState<string>(getListIdFromUrl);
